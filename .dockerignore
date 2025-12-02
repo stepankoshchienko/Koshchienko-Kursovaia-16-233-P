@@ -1,0 +1,13 @@
+.git
+.gitignore
+node_modules
+vendor
+storage/*.log
+*.sqlite
+*.sqlite-journal
+.env
+.DS_Store
+.phpunit.result.cache
+docker-compose.yml
+docker-compose.override.yml
+README.md
