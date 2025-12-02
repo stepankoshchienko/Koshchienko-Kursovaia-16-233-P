@@ -1,45 +1,47 @@
 FROM php:8.2-fpm-alpine
 
+# 1. Устанавливаем зависимости
 RUN apk update && apk add --no-cache \
     nginx \
     nodejs \
     npm \
     oniguruma-dev
 
+# 2. Устанавливаем PHP расширения
 RUN docker-php-ext-install pdo pdo_mysql mbstring
 
+# 3. Устанавливаем Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-RUN mkdir -p /run/nginx
+# 4. Создаем ВСЕ необходимые директории ДО копирования кода
+RUN mkdir -p /run/nginx \
+    /var/lib/nginx/logs \
+    /var/lib/nginx/tmp/client_body \
+    /var/lib/nginx/tmp/proxy \
+    /var/lib/nginx/tmp/fastcgi \
+    /var/lib/nginx/tmp/uwsgi \
+    /var/lib/nginx/tmp/scgi
 
+# 5. Устанавливаем права для Nginx
+RUN chown -R nginx:nginx /var/lib/nginx \
+    && chmod -R 755 /var/lib/nginx
+
+# 6. Копируем код
 WORKDIR /var/www
 COPY . .
 
-# 1. Сначала устанавливаем зависимости
+# 7. Устанавливаем зависимости
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts \
     && npm install --legacy-peer-deps \
     && npm run build
 
-# 2. Создаем нужные директории и устанавливаем права ПОСЛЕ копирования
-RUN mkdir -p storage/framework/{sessions,views,cache} \
-    && mkdir -p storage/logs \
-    && mkdir -p bootstrap/cache
+# 8. Права для Laravel
+RUN chmod -R 777 storage bootstrap/cache
 
-# 3. КРИТИЧЕСКИ ВАЖНО: правильные права для www-data пользователя
-RUN chown -R www-data:www-data /var/www \
-    && chmod -R 775 storage bootstrap/cache \
-    && chmod -R 777 storage/logs
-
-# 4. Запускаем artisan optimize
-RUN php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
-
-# 5. Копируем конфиг nginx
+# 9. Копируем nginx конфиг
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 
-# 6. Запускаем от имени www-data
-USER www-data
+# 10. Запускаем как root (nginx требует root для некоторых операций)
 CMD sh -c "php-fpm -D && nginx -g 'daemon off;'"
