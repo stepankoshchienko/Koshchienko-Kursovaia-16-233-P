@@ -5,11 +5,13 @@ RUN apk update && apk add --no-cache \
     nginx \
     nodejs \
     npm \
-    oniguruma-dev
-    postgresql-dev
+    oniguruma-dev \
+    postgresql-dev \
+    libzip-dev \
+    && docker-php-ext-install zip
 
 # 2. Устанавливаем PHP расширения
-RUN docker-php-ext-install pdo pdo_mysql mbstring pdo_pgsql 
+RUN docker-php-ext-install pdo pdo_mysql mbstring pdo_pgsql
 
 # 3. Устанавливаем Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -31,18 +33,24 @@ RUN chown -R nginx:nginx /var/lib/nginx \
 WORKDIR /var/www
 COPY . .
 
-# 7. Устанавливаем зависимости
+# 7. Копируем .env если его нет (для Render)
+COPY .env.example .env
+
+# 8. Устанавливаем зависимости
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts \
     && npm install --legacy-peer-deps \
     && npm run build
 
-# 8. Права для Laravel
+# 9. Права для Laravel
 RUN chmod -R 777 storage bootstrap/cache
 
-# 9. Копируем nginx конфиг
+# 10. Генерируем ключ приложения
+RUN php artisan key:generate --no-interaction
+
+# 11. Копируем nginx конфиг
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 
-# 10. Запускаем как root (nginx требует root для некоторых операций)
+# 12. Запускаем как root (nginx требует root для некоторых операций)
 CMD sh -c "php-fpm -D && nginx -g 'daemon off;'"

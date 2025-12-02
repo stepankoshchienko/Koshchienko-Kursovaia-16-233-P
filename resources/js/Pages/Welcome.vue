@@ -10,7 +10,7 @@
             ДЛЯ ВСЕЙ СЕМЬИ
           </h1>
 
-          <button class="order-btn">Оформить заказ</button>
+          <button class="order-btn" @click="goToCart">Оформить заказ</button>
         </div>
 
           <!-- Иконка чебурека -->
@@ -153,7 +153,10 @@ export default {
   methods: {
     addToCart(item) {
       Cart.add(item);
-    }
+    },
+    goToCart() {
+      this.$inertia.visit('/cart');
+    },
   },
 
   data() {
