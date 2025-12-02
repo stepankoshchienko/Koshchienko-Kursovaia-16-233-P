@@ -15,18 +15,31 @@ RUN mkdir -p /run/nginx
 WORKDIR /var/www
 COPY . .
 
-# Установка с --no-scripts чтобы пропустить post-autoload-dump
+# 1. Сначала устанавливаем зависимости
 RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs --no-scripts \
     && npm install --legacy-peer-deps \
     && npm run build
 
-# Запускаем скрипты отдельно ПОСЛЕ исправления кода
-RUN composer run-script post-autoload-dump
+# 2. Создаем нужные директории и устанавливаем права ПОСЛЕ копирования
+RUN mkdir -p storage/framework/{sessions,views,cache} \
+    && mkdir -p storage/logs \
+    && mkdir -p bootstrap/cache
 
-RUN chmod -R 775 storage bootstrap/cache
+# 3. КРИТИЧЕСКИ ВАЖНО: правильные права для www-data пользователя
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 775 storage bootstrap/cache \
+    && chmod -R 777 storage/logs
 
+# 4. Запускаем artisan optimize
+RUN php artisan config:cache \
+    && php artisan route:cache \
+    && php artisan view:cache
+
+# 5. Копируем конфиг nginx
 COPY docker/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80
 
+# 6. Запускаем от имени www-data
+USER www-data
 CMD sh -c "php-fpm -D && nginx -g 'daemon off;'"
