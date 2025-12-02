@@ -35,8 +35,8 @@
 
             <!-- Соцсети -->
             <div class="footer-socials">
-                <a href="/t.me/cheburek_ok"><img src="/public/src/icons/Telegram.svg" alt="Telegram" /></a>
-                <a href="/https://vk.com/club234353978"><img src="/public/src/icons/VK.svg" alt="VK" class="vk"/></a>
+                <a href="https://t.me/cheburek_ok"><img src="/public/src/icons/Telegram.svg" alt="Telegram" /></a>
+                <a href="https://vk.com/club234353978"><img src="/public/src/icons/VK.svg" alt="VK" class="vk"/></a>
             </div>
 
         </div>

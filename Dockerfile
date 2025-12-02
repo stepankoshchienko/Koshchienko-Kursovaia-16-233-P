@@ -6,9 +6,10 @@ RUN apk update && apk add --no-cache \
     nodejs \
     npm \
     oniguruma-dev
+    postgresql-dev
 
 # 2. Устанавливаем PHP расширения
-RUN docker-php-ext-install pdo pdo_mysql mbstring
+RUN docker-php-ext-install pdo pdo_mysql mbstring pdo_pgsql 
 
 # 3. Устанавливаем Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer

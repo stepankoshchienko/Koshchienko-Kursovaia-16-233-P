@@ -22,8 +22,8 @@
 
         <!-- Навигация -->
         <nav class="header__nav">
-            <a href="#" @click.prevent="goToMenu">Меню</a>
-            <a href="#" @click.prevent="goToReviews">Отзывы</a>
+          <a href="/#menu" @click.prevent="goToMenu">Меню</a>
+          <a href="/#reviews" @click.prevent="goToReviews">Отзывы</a>
 
         <!-- Контейнер с иконками и статусом -->
             <div class="header__actions">
@@ -64,40 +64,21 @@ export default {
 
   methods: {
     goToMenu() {
-      this.$inertia.visit('/', {
-        only: [],
-        preserveScroll: false,
-        onSuccess: () => {
-          // После загрузки главной страницы, прокрутить к меню
-          this.$nextTick(() => {
-            const menu = document.getElementById('menu');
-            if (menu) {
-              window.scrollTo({
-                top: menu.offsetTop - 80, 
-                behavior: 'smooth'
-              });
-            }
-          });
-        }
-      });
+      if (window.location.pathname === '/') {
+        // Если уже на главной, просто скроллим
+        this.scrollToElement('menu');
+      } else {
+        // Если на другой странице, переходим на главную с хэшем
+        this.$inertia.visit('/#menu');
+      }
     },
+    
     goToReviews() {
-      this.$inertia.visit('/', {
-        only: [],
-        preserveScroll: false,
-        onSuccess: () => {
-          // После загрузки главной страницы, прокрутить к меню
-          this.$nextTick(() => {
-            const reviews = document.getElementById('reviews');
-            if (reviews) {
-              window.scrollTo({
-                top: reviews.offsetTop - 80, 
-                behavior: 'smooth'
-              });
-            }
-          });
-        }
-      });
+      if (window.location.pathname === '/') {
+        this.scrollToElement('reviews');
+      } else {
+        this.$inertia.visit('/#reviews');
+      }
     },
     handleSearch() {
       if (!this.query.trim()) return; 
